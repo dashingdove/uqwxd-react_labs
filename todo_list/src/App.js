@@ -2,41 +2,73 @@ import React from "react";
 import "./App.css";
 const App = () => {
   const [todos, setTodos] = React.useState([]);
-  const [todo, setTodo] = React.useState("");
+  const [todo, setTodo] = React.useState({text:''});
   const [errMsg, setErrMsg] = React.useState("");
+  const [nextID, setNextID] = React.useState(0);
+
+    function getNextID() {
+        let result = nextID;
+        setNextID(result+1);
+        return result;
+    }
   
     function handleSubmit(e) {
         e.preventDefault();
-        if (todo.trim().length > 0) {
+        if (todo.text && todo.text.trim().length > 0) {
             setErrMsg(null);
-            setTodos([...todos, {id: Math.floor(Math.random()*Math.pow(10, 100)), text: todo}]);
+            if (typeof todo.id === 'undefined') {
+                setTodos([...todos, {id: getNextID(), text: todo.text}]);
+            } else {
+                todos.map(t => {
+                    if (t.id === todo.id) {
+                        t.text = todo.text;
+                    }
+                    return t;
+                });
+                setTodos(todos);
+            }
         } else {
             setErrMsg("NOPE!");
         }
-        setTodo("");
+        setTodo({text: ''});
     }
   
     function deleteTodo (e, todo) {
-        setTodos(todos.filter(t => t.id != todo.id));
+        setTodos(todos.filter(t => t.id !== todo.id));
     }
 
-  
-  // Add the toggleComplete code here
+    function toggleComplete (e, todo) {
+        todos.map(t => {
+            if (t.id === todo.id) {
+                t.completed = !t.completed;
+            }
+            return t;
+        });
+        setTodos(todos);
+    }
 
-  
-  // Add the submitEdits code here
+    function editTodo (e, todo) {
+        setTodo(todo);
+    }
 
   
 return(
 <div className ="App">
     <h1>Todo List</h1>
     <form onSubmit={handleSubmit}>
-        <input type ="text" align ="right" value={todo} onChange={e => {setTodo(e.target.value);}}/>
+        <input type ="text" align ="right" value={todo.text} onChange={e => setTodo({...todo, text: e.target.value})}/>
         <p>{errMsg}</p>
         <button type ="submit">Add Todo</button>
     </form>
     <ul>
-        {todos.map(todo => <li>{todo.text} <a onClick={e => deleteTodo(e, todo)}>(x)</a></li>)}
+        {todos.map(todo => (
+            <li id={todo.id}>
+                <input type="checkbox" checked={todo.completed} onChange={e => toggleComplete(e, todo)}/>
+                <a onClick={e => editTodo(e, todo)}>{todo.text}</a>
+
+                <a onClick={e => deleteTodo(e, todo)}>(x)</a>
+            </li>)
+        )}
     </ul>
 </div>
 );
